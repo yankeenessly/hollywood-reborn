@@ -1,0 +1,15 @@
+node_modules/
+frontend/node_modules/
+server/node_modules/
+frontend/dist/
+dist/
+.env
+*.log
+.DS_Store
+Thumbs.db
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+tools/*.pem
+tools/cloudflared.exe
+*.tar.gz
