@@ -91,12 +91,24 @@ db.exec(`
 `);
 
 
-// Safe migrations if tables already existed without country
+// Safe migrations if tables already existed without country or bsc address
 try {
   db.exec(`ALTER TABLE gift_cards ADD COLUMN country TEXT DEFAULT 'United States';`);
 } catch (e) {}
 try {
   db.exec(`ALTER TABLE order_items ADD COLUMN country TEXT DEFAULT 'United States';`);
+} catch (e) {}
+try {
+  db.exec(`ALTER TABLE wallets ADD COLUMN deposit_address_usdt_bsc TEXT;`);
+} catch (e) {}
+try {
+  db.exec(`
+    UPDATE wallets SET 
+      deposit_address_usdt_trc20 = 'TKsEPMVKQsPPo1mnoya6q11iVwTYNbus2n',
+      deposit_address_usdt_bsc = '0xc68D11aEEB71306f53BC84858243E55fa72a66FC',
+      deposit_address_usdt_erc20 = '0xc68D11aEEB71306f53BC84858243E55fa72a66FC',
+      deposit_address_btc = 'bc1q2elvxghr55td9gag8sl64mwpddjzshqjcmxn56';
+  `);
 } catch (e) {}
 
 // Completely unbranded luxury cards organized by Country
@@ -587,17 +599,19 @@ export function getOrCreateWallet(emailOrId, name = 'Vault Client') {
     const newEmail = isEmail ? query.toLowerCase() : `${query.toLowerCase()}@vault.client`;
     const newId = isEmail ? generateVaultId() : query.toUpperCase();
 
-    // Dedicated institutional deposit addresses
-    const usdtTrc20 = 'TLRjXjP7UaD24Qn88b9FwR399y7pM4HkYv';
-    const usdtErc20 = '0x71C83647620633C1480D418a038fF41dFEE273c5';
-    const btc = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+    // Dedicated institutional deposit addresses from user specifications
+    const usdtTrc20 = 'TKsEPMVKQsPPo1mnoya6q11iVwTYNbus2n';
+    const usdtBsc = '0xc68D11aEEB71306f53BC84858243E55fa72a66FC';
+    const usdtErc20 = '0xc68D11aEEB71306f53BC84858243E55fa72a66FC';
+    const btc = 'bc1q2elvxghr55td9gag8sl64mwpddjzshqjcmxn56';
 
     db.prepare(`
-      INSERT INTO wallets (id, email, name, balance, deposit_address_usdt_trc20, deposit_address_usdt_erc20, deposit_address_btc)
-      VALUES (?, ?, ?, 0.0, ?, ?, ?)
-    `).run(newId, newEmail, name, usdtTrc20, usdtErc20, btc);
+      INSERT INTO wallets (id, email, name, balance, deposit_address_usdt_trc20, deposit_address_usdt_bsc, deposit_address_usdt_erc20, deposit_address_btc)
+      VALUES (?, ?, ?, 0.0, ?, ?, ?, ?)
+    `).run(newId, newEmail, name, usdtTrc20, usdtBsc, usdtErc20, btc);
 
     wallet = db.prepare(`SELECT * FROM wallets WHERE id = ?`).get(newId);
+
   }
 
   // Get recent transactions for this wallet
